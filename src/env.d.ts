@@ -1,13 +1,14 @@
-// src/env.d.ts (RENAMED from vite-env.d.ts)
+// src/env.d.ts
 /// <reference types="astro/client" />
 
 interface ImportMetaEnv {
-  // ✅ FIXED: Use PUBLIC_ prefix for client-side variables
+  // Public (client-side accessible)
   readonly PUBLIC_SPOTIFY_CLIENT_ID: string;
   readonly PUBLIC_SPOTIFY_REDIRECT_URI: string;
 
-  // Server-side only (no PUBLIC_ prefix)
+  // Server-only
   readonly SPOTIFY_CLIENT_SECRET: string;
+  readonly SPOTIFY_REFRESH_TOKEN?: string; // Optional for now
 }
 
 interface ImportMeta {
