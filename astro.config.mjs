@@ -6,6 +6,7 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "http://127.0.0.1:4321",
   output: "server",
+  adapter: vercel(),
   server: {
     port: 4321,
     host: true,
