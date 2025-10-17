@@ -1,0 +1,9 @@
+---
+// src/pages/callback.astro
+import BaseLayout from "../layouts/Baselayout.astro";
+import CallbackContent from "../components/CallbackContent";
+---
+
+<BaseLayout title="Connecting to Spotify...">
+  <CallbackContent client:only="react" />
+</BaseLayout>
