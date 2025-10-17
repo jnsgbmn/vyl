@@ -1,4 +1,4 @@
-// src/components/CallbackContent.tsx
+// src/components/CallbackContent.tsx - CORRECTED
 import { useEffect, useState } from "react";
 import MeshGradientBackground from "./MeshGradientBackground";
 
@@ -29,21 +29,13 @@ export default function CallbackContent() {
     setStatus("Exchanging code for access token...");
 
     try {
-      const client_id = "9d00c705d5354e9cbd4dee1e5b304e71";
-      const client_secret = "e0c1345eed744a58a76a384f22c5f3a9";
-      const redirect_uri = "http://127.0.0.1:4321/callback";
-
-      const response = await fetch("https://accounts.spotify.com/api/token", {
+      // ✅ FIXED: Use server-side API endpoint (secure)
+      const response = await fetch("/api/token", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: "Basic " + btoa(client_id + ":" + client_secret),
+          "Content-Type": "application/json",
         },
-        body: new URLSearchParams({
-          grant_type: "authorization_code",
-          code: code,
-          redirect_uri: redirect_uri,
-        }),
+        body: JSON.stringify({ code }),
       });
 
       if (!response.ok) {
@@ -67,6 +59,7 @@ export default function CallbackContent() {
       // Redirect to app
       setTimeout(() => (window.location.href = "/"), 1000);
     } catch (error: any) {
+      console.error("Token exchange error:", error);
       setStatus(`Token exchange failed: ${error.message}`);
       setTimeout(() => (window.location.href = "/login"), 3000);
     }

@@ -3,7 +3,6 @@
 import BaseLayout from "../layouts/Baselayout.astro";
 import LoginPage from "../components/LoginPage";
 
-// ✅ FIXED: Use PUBLIC_ prefix for Astro
 const client_id = import.meta.env.PUBLIC_SPOTIFY_CLIENT_ID;
 const redirect_uri = import.meta.env.PUBLIC_SPOTIFY_REDIRECT_URI;
 
@@ -22,7 +21,7 @@ const scope = [
 
 // Use Authorization Code flow (not token)
 const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
-  response_type: "code",
+  response_type: "code", // ← MUST BE "code"
   client_id: client_id,
   scope: scope,
   redirect_uri: redirect_uri,

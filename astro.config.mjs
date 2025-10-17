@@ -3,7 +3,6 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel/serverless";
-
 export default defineConfig({
   site: "http://127.0.0.1:4321",
   output: "server",
