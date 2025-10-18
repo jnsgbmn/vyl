@@ -1,4 +1,4 @@
-// src/components/CallbackContent.tsx - PREVENT REFRESH ISSUE
+// src/components/CallbackContent.tsx - CORRECTED
 import { useEffect, useState } from "react";
 import MeshGradientBackground from "./MeshGradientBackground";
 
@@ -6,9 +6,6 @@ export default function CallbackContent() {
   const [status, setStatus] = useState("Connecting to Spotify...");
 
   useEffect(() => {
-    // Prevent back/forward navigation to this page
-    window.history.replaceState(null, "", "/");
-
     exchangeCodeForToken();
   }, []);
 
@@ -25,15 +22,15 @@ export default function CallbackContent() {
 
     if (!code) {
       setStatus("No authorization code received");
-      // Redirect to home if no code (likely a refresh)
-      setTimeout(() => (window.location.href = "/"), 1000);
+      setTimeout(() => (window.location.href = "/login"), 2000);
       return;
     }
 
     setStatus("Exchanging code for access token...");
 
     try {
-      const response = await fetch("http://localhost:4321/api/token", {
+      // ✅ FIXED: Use server-side API endpoint (secure)
+      const response = await fetch("/api/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,19 +38,9 @@ export default function CallbackContent() {
         body: JSON.stringify({ code }),
       });
 
-      const contentType = response.headers.get("content-type");
-
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned non-JSON response");
-      }
-
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.error_description ||
-            errorData.error ||
-            "Token exchange failed"
-        );
+        throw new Error(errorData.error_description || "Token exchange failed");
       }
 
       const data = await response.json();
@@ -69,25 +56,12 @@ export default function CallbackContent() {
       const expiryTime = Date.now() + data.expires_in * 1000;
       localStorage.setItem("spotify_token_expiry", expiryTime.toString());
 
-      // Clean URL and redirect
-      window.history.replaceState(null, "", "/");
-
       // Redirect to app
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
+      setTimeout(() => (window.location.href = "/"), 1000);
     } catch (error: any) {
-      setStatus(`Error: ${error.message}`);
-
-      // If authorization code already used, redirect to login
-      if (
-        error.message.includes("Authorization code") ||
-        error.message.includes("invalid_grant")
-      ) {
-        setTimeout(() => (window.location.href = "/login"), 2000);
-      } else {
-        setTimeout(() => (window.location.href = "/login"), 3000);
-      }
+      console.error("Token exchange error:", error);
+      setStatus(`Token exchange failed: ${error.message}`);
+      setTimeout(() => (window.location.href = "/login"), 3000);
     }
   }
 
