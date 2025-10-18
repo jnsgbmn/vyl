@@ -17,6 +17,7 @@ export default defineConfig({
     },
   },
   integrations: [react(), sitemap()],
+  middleware: true,
   vite: {
     plugins: [tailwindcss()],
   },
@@ -27,5 +28,8 @@ export default defineConfig({
   optimizeDeps: {
     // Include WebGL dependencies
     include: ["@paper-design/shaders-react"],
+  },
+  devToolbar: {
+    enabled: false,
   },
 });
