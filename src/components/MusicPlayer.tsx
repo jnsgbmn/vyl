@@ -1,4 +1,4 @@
-// src/components/MusicPlayer.tsx - WITH DYNAMIC TAB TITLE
+// src/components/MusicPlayer.tsx - CLEANED UP
 import { useState, useEffect } from "react";
 import AlbumCarousel from "./AlbumCarousel";
 import SongInfo from "./SongInfo";
@@ -8,6 +8,7 @@ import ConnectionStatus from "./ConnectionStatus";
 import MeshGradientBackground from "./MeshGradientBackground";
 import FullscreenButton from "./FullscreenButton";
 import LibraryDropdown from "./LibraryDropdown";
+import PlaylistSheet from "./PlaylistSheet";
 
 interface MusicPlayerProps {
   token?: string;
@@ -31,6 +32,72 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
   const [isShuffle, setIsShuffle] = useState(false);
   const [crossfadeDuration, setCrossfadeDuration] = useState(0);
 
+  const handleTrackSelect = async (track: any, index: number) => {
+    if (!token || !track) return;
+
+    try {
+      // Play the selected track
+      await fetch(`https://api.spotify.com/v1/me/player/play`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uris: [track.uri],
+        }),
+      });
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (!token || currentTrack || isActive) return;
+
+    const fetchCurrentPlayback = async () => {
+      try {
+        const response = await fetch("https://api.spotify.com/v1/me/player", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.item) {
+            setCurrentTrack(data.item);
+            setDuration(data.item.duration_ms / 1000);
+            setCurrentTime(data.progress_ms / 1000);
+            setIsPaused(!data.is_playing);
+            return;
+          }
+        }
+        fetchRecentlyPlayed();
+      } catch {
+        fetchRecentlyPlayed();
+      }
+    };
+
+    const fetchRecentlyPlayed = async () => {
+      try {
+        const response = await fetch(
+          "https://api.spotify.com/v1/me/player/recently-played?limit=1",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const lastTrack = data.items?.[0]?.track;
+          if (lastTrack) {
+            setCurrentTrack(lastTrack);
+            setDuration(lastTrack.duration_ms / 1000);
+            setCurrentTime(0);
+            setIsPaused(true);
+          }
+        }
+      } catch {}
+    };
+
+    fetchCurrentPlayback();
+  }, [token, currentTrack, isActive]);
+
   // Update browser tab title dynamically
   useEffect(() => {
     if (currentTrack && !isPaused) {
@@ -40,25 +107,18 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     } else if (currentTrack && isPaused) {
       const trackName = currentTrack.name;
       const artistName = currentTrack.artists?.[0]?.name || "Unknown Artist";
-      document.title = ` ${trackName} - ${artistName} `;
+      document.title = ` ${trackName} - ${artistName}`;
     } else {
       document.title = "Vyl - Music Player";
     }
   }, [currentTrack, isPaused]);
 
-  // In the progress bar area, detect when crossfade should start
-  const isCrossfading =
-    crossfadeDuration > 0 && duration - currentTime <= crossfadeDuration;
-
-  const handlePlaylistSelect = (playlistId: string, playlistName: string) => {
-    console.log("Selected playlist:", playlistName, playlistId);
+  const handlePlaylistSelect = (playlistId: string) => {
+    // Playlist selection logic here
   };
 
   const handleShuffleToggle = async () => {
-    if (!token) {
-      console.error("No token available");
-      return;
-    }
+    if (!token) return;
 
     const newShuffleState = !isShuffle;
 
@@ -67,30 +127,19 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
         `https://api.spotify.com/v1/me/player/shuffle?state=${newShuffleState}`,
         {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (response.ok || response.status === 204) {
         setIsShuffle(newShuffleState);
-        console.log("Shuffle is now:", newShuffleState ? "ON ✅" : "OFF ❌");
-      } else {
-        console.error("Failed to toggle shuffle:", response.status);
       }
-    } catch (error) {
-      console.error("Shuffle toggle error:", error);
-    }
+    } catch {}
   };
 
   const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
-    if (player) {
-      player
-        .setVolume(newVolume / 100)
-        .catch((error) => console.error("Volume error:", error));
-    }
+    player?.setVolume(newVolume / 100).catch(() => {});
   };
 
   // Poll for context changes and update tracks
@@ -109,7 +158,6 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
         const contextUri = data?.context?.uri || "";
 
         if (contextUri && contextUri !== currentContextUri) {
-          console.log("Context changed to:", contextUri);
           setCurrentContextUri(contextUri);
 
           if (contextUri.includes("playlist")) {
@@ -120,9 +168,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
             await fetchAlbumTracks(albumId);
           }
         }
-      } catch (error) {
-        console.error("Error polling context:", error);
-      }
+      } catch {}
     };
 
     pollContextChanges();
@@ -136,10 +182,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
       const index = playlistTracks.findIndex(
         (t: any) => t.id === currentTrack.id
       );
-      if (index >= 0) {
-        setCurrentTrackIndex(index);
-        console.log("Updated track index:", index, "/", playlistTracks.length);
-      }
+      if (index >= 0) setCurrentTrackIndex(index);
     }
   }, [currentTrack, playlistTracks]);
 
@@ -147,49 +190,37 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     try {
       const response = await fetch(
         `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await response.json();
       const tracks = data.items
         .map((item: any) => item.track)
-        .filter((t: any) => t && t.id);
+        .filter((t: any) => t?.id);
       setPlaylistTracks(tracks);
-      console.log("✅ Fetched playlist tracks:", tracks.length);
-    } catch (error) {
-      console.error("Error fetching playlist:", error);
-    }
+    } catch {}
   };
 
   const fetchAlbumTracks = async (albumId: string) => {
     try {
       const response = await fetch(
         `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await response.json();
-      const tracks = data.items.filter((t: any) => t && t.id);
+      const tracks = data.items.filter((t: any) => t?.id);
 
       const fullTracks = await Promise.all(
         tracks.map(async (track: any) => {
           const trackResponse = await fetch(
             `https://api.spotify.com/v1/tracks/${track.id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           return await trackResponse.json();
         })
       );
 
       setPlaylistTracks(fullTracks);
-      console.log("✅ Fetched album tracks:", fullTracks.length);
-    } catch (error) {
-      console.error("Error fetching album:", error);
-    }
+    } catch {}
   };
 
   // Update progress bar continuously
@@ -211,7 +242,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     if (!deviceId || !token) return;
 
     try {
-      const response = await fetch("https://api.spotify.com/v1/me/player", {
+      await fetch("https://api.spotify.com/v1/me/player", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -222,13 +253,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
           play: true,
         }),
       });
-
-      if (response.ok || response.status === 204) {
-        console.log("Playback transferred to Vyl!");
-      }
-    } catch (error) {
-      console.error("Failed to transfer playback:", error);
-    }
+    } catch {}
   };
 
   // Initialize Spotify SDK
@@ -257,7 +282,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
       const spotifyPlayer = new window.Spotify.Player({
         name: "Vyl Music Player",
         getOAuthToken: (cb: (token: string) => void) => cb(token!),
-        volume: 0.5,
+        volume: 0.2,
       });
 
       setPlayer(spotifyPlayer);
@@ -265,17 +290,11 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
       spotifyPlayer.addListener(
         "ready",
         ({ device_id }: { device_id: string }) => {
-          console.log("Ready with Device ID", device_id);
           setDeviceId(device_id);
         }
       );
 
-      spotifyPlayer.addListener(
-        "not_ready",
-        ({ device_id }: { device_id: string }) => {
-          console.log("Device ID has gone offline", device_id);
-        }
-      );
+      spotifyPlayer.addListener("not_ready", () => {});
 
       spotifyPlayer.addListener(
         "player_state_changed",
@@ -299,37 +318,18 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     }
 
     return () => {
-      if (player) player.disconnect();
+      player?.disconnect();
     };
   }, [token]);
 
-  const handlePlayPause = () => {
-    if (!player) return;
-    player
-      .togglePlay()
-      .catch((error) => console.error("Toggle play error:", error));
-  };
-
-  const handleNextTrack = () => {
-    if (!player) return;
-    player
-      .nextTrack()
-      .catch((error) => console.error("Next track error:", error));
-  };
-
-  const handlePreviousTrack = () => {
-    if (!player) return;
-    player
-      .previousTrack()
-      .catch((error) => console.error("Previous track error:", error));
-  };
+  const handlePlayPause = () => player?.togglePlay().catch(() => {});
+  const handleNextTrack = () => player?.nextTrack().catch(() => {});
+  const handlePreviousTrack = () => player?.previousTrack().catch(() => {});
 
   const handleSeek = (value: number[]) => {
     if (!player) return;
     setCurrentTime(value[0]);
-    player
-      .seek(value[0] * 1000)
-      .catch((error) => console.error("Seek error:", error));
+    player.seek(value[0] * 1000).catch(() => {});
   };
 
   const formatTime = (seconds: number) => {
@@ -362,20 +362,23 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen relative text-white flex flex-col items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen relative text-white flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
       <MeshGradientBackground
         albumImageUrl={currentTrack?.album?.images?.[0]?.url}
       />
-      <div className="absolute top-6 left-6 right-6 z-50 flex items-center justify-between">
+
+      {/* Header - Better mobile spacing */}
+      <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 z-50 flex items-center justify-between">
         <LibraryDropdown
           token={token!}
           onPlaylistSelect={handlePlaylistSelect}
         />
         <FullscreenButton />
       </div>
-      <div className="relative z-10 w-full flex flex-col items-center">
+
+      {/* Main content - Optimized for mobile */}
+      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center px-2 sm:px-4">
         <AlbumCarousel
           currentTrack={currentTrack}
           previousTracks={displayPreviousTracks}
@@ -408,10 +411,19 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
           onShuffleToggle={handleShuffleToggle}
         />
 
-        <ConnectionStatus
-          isActive={isActive}
-          deviceId={deviceId}
-          onTransferPlayback={transferPlaybackToVyl}
+        {/* Connection status - Better mobile positioning */}
+        <div className="mt-4 sm:mt-6">
+          <ConnectionStatus
+            isActive={isActive}
+            deviceId={deviceId}
+            onTransferPlayback={transferPlaybackToVyl}
+          />
+        </div>
+        <PlaylistSheet
+          tracks={playlistTracks}
+          currentTrack={currentTrack}
+          onTrackSelect={handleTrackSelect}
+          isPaused={isPaused}
         />
       </div>
     </div>
