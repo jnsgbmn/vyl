@@ -6,7 +6,9 @@ import vercel from "@astrojs/vercel/serverless";
 export default defineConfig({
   site: "http://127.0.0.1:4321",
   output: "server",
-  adapter: vercel(),
+  adapter: vercel({
+    edgeMiddleware: false, // ✅ Disable edge middleware
+  }),
   server: {
     port: 4321,
     host: true,
