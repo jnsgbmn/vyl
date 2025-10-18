@@ -35,7 +35,7 @@ export default function PlayerControls({
   onCrossfadeChange, // Added this
 }: PlayerControlsProps) {
   return (
-    <div className="flex flex-col items-center gap-4 mb-8">
+    <div className="flex   flex-col items-center gap-4 mb-8">
       {/* Main playback controls */}
       <div className="flex items-center justify-center gap-6">
         {/* Shuffle Button */}
