@@ -2,20 +2,6 @@
 // src/pages/callback.astro
 import BaseLayout from "../layouts/Baselayout.astro";
 import CallbackContent from "../components/CallbackContent";
-
-// Check for authorization code
-const code = Astro.url.searchParams.get("code");
-const error = Astro.url.searchParams.get("error");
-
-// If error from Spotify, redirect to login
-if (error) {
-  return Astro.redirect("/login");
-}
-
-// If no code (user refreshed page), redirect to home
-if (!code) {
-  return Astro.redirect("/");
-}
 ---
 
 <BaseLayout title="Connecting to Spotify...">

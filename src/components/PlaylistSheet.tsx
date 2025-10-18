@@ -1,4 +1,4 @@
-// src/components/PlaylistSheet.tsx - CENTERED WITH MAX WIDTH
+// src/components/PlaylistSheet.tsx - FIXED Z-INDEX & POINTER EVENTS
 import { useState, useRef } from "react";
 import { ChevronUp, Music } from "lucide-react";
 import AudioWaveIndicator from "./AudioWaveIndicator";
@@ -52,10 +52,18 @@ export default function PlaylistSheet({
 
   return (
     <>
-      {/* Centered Container with Max Width */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
+      {/* Backdrop - Behind player controls (z-30) */}
+      {isOpen && (
         <div
-          className={`w-full max-w-5xl transition-transform duration-300 ${
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Centered Container with Max Width (z-40) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none">
+        <div
+          className={`w-full max-w-5xl transition-transform duration-300 pointer-events-auto ${
             isOpen ? "translate-y-0" : "translate-y-[calc(100%-80px)]"
           }`}
           ref={sheetRef}
@@ -164,14 +172,6 @@ export default function PlaylistSheet({
           </div>
         </div>
       </div>
-
-      {/* Backdrop - More transparent */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </>
   );
 }
