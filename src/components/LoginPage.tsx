@@ -44,15 +44,15 @@ export default function LoginPage({ authUrl }: LoginPageProps) {
           </svg>
           Connect with Spotify
         </a>
+        <div className="relative mt-10  z-10 pb-6 text-center">
+          <p className="text-sm text-gray-500">
+            © {currentYear} Vyl. All rights reserved
+          </p>
+          <p className="text-xs text-gray-500 mt-1"> jsgbn</p>
+        </div>
       </div>
 
       {/* Copyright Footer */}
-      <div className="relative z-10 pb-6 text-center">
-        <p className="text-sm text-gray-500">
-          © {currentYear} Vyl. All rights reserved
-        </p>
-        <p className="text-xs text-gray-500 mt-1"> jsgbn</p>
-      </div>
     </div>
   );
 }

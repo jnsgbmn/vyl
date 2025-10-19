@@ -1,4 +1,3 @@
-// src/pages/api/spotify.json.ts
 import type { APIRoute } from "astro";
 import { getNowPlaying } from "../../lib/spotify";
 

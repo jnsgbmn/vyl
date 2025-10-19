@@ -1,4 +1,3 @@
-// src/pages/api/token.ts
 export async function POST({ request }: { request: Request }) {
   try {
     const { code } = await request.json();
