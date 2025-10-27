@@ -1,4 +1,4 @@
-// src/components/MusicPlayer.tsx - CLEANED UP
+// src/components/MusicPlayer.tsx - CORRECTED
 import { useState, useEffect } from "react";
 import AlbumCarousel from "./AlbumCarousel";
 import SongInfo from "./SongInfo";
@@ -15,6 +15,7 @@ interface MusicPlayerProps {
 }
 
 export default function MusicPlayer({ token }: MusicPlayerProps) {
+  // State declarations
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(240);
   const [isLiked, setIsLiked] = useState(false);
@@ -31,25 +32,11 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
   const [volume, setVolume] = useState(20);
   const [isShuffle, setIsShuffle] = useState(false);
   const [crossfadeDuration, setCrossfadeDuration] = useState(0);
+  const [repeatMode, setRepeatMode] = useState<"off" | "context" | "track">(
+    "off"
+  );
 
-  const handleTrackSelect = async (track: any, index: number) => {
-    if (!token || !track) return;
-
-    try {
-      // Play the selected track
-      await fetch(`https://api.spotify.com/v1/me/player/play`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uris: [track.uri],
-        }),
-      });
-    } catch {}
-  };
-
+  // Fetch initial playback state
   useEffect(() => {
     if (!token || currentTrack || isActive) return;
 
@@ -98,28 +85,83 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     fetchCurrentPlayback();
   }, [token, currentTrack, isActive]);
 
-  // Update browser tab title dynamically
+  // Update browser tab title
   useEffect(() => {
-    if (currentTrack && !isPaused) {
+    if (currentTrack) {
       const trackName = currentTrack.name;
       const artistName = currentTrack.artists?.[0]?.name || "Unknown Artist";
-      document.title = ` ${trackName} - ${artistName}`;
-    } else if (currentTrack && isPaused) {
-      const trackName = currentTrack.name;
-      const artistName = currentTrack.artists?.[0]?.name || "Unknown Artist";
-      document.title = ` ${trackName} - ${artistName}`;
+      document.title = `${trackName} - ${artistName}`;
     } else {
       document.title = "Vyl - Music Player";
     }
-  }, [currentTrack, isPaused]);
+  }, [currentTrack]);
+
+  // Handle track selection
+  const handleTrackSelect = async (track: any, index: number) => {
+    if (!token || !track) return;
+
+    let contextUri = "";
+    if (currentContextUri) {
+      contextUri = currentContextUri;
+    } else if (track.album?.uri) {
+      contextUri = track.album.uri;
+    } else if (track.playlist?.uri) {
+      contextUri = track.playlist.uri;
+    }
+
+    try {
+      if (contextUri) {
+        await fetch(`https://api.spotify.com/v1/me/player/play`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            context_uri: contextUri,
+            offset: { position: index },
+          }),
+        });
+      } else {
+        await fetch(`https://api.spotify.com/v1/me/player/play`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uris: [track.uri],
+          }),
+        });
+      }
+    } catch {}
+  };
 
   const handlePlaylistSelect = (playlistId: string) => {
     // Playlist selection logic here
   };
 
+  const handleRepeatToggle = async () => {
+    if (!token) return;
+    let newMode: "off" | "context" | "track";
+    if (repeatMode === "off") newMode = "context";
+    else if (repeatMode === "context") newMode = "track";
+    else newMode = "off";
+
+    try {
+      await fetch(
+        `https://api.spotify.com/v1/me/player/repeat?state=${newMode}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setRepeatMode(newMode);
+    } catch {}
+  };
+
   const handleShuffleToggle = async () => {
     if (!token) return;
-
     const newShuffleState = !isShuffle;
 
     try {
@@ -142,7 +184,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     player?.setVolume(newVolume / 100).catch(() => {});
   };
 
-  // Poll for context changes and update tracks
+  // Poll for context changes
   useEffect(() => {
     if (!token || !isActive) return;
 
@@ -176,7 +218,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     return () => clearInterval(interval);
   }, [token, isActive, currentContextUri]);
 
-  // Update track index whenever current track changes
+  // Update track index
   useEffect(() => {
     if (currentTrack && playlistTracks.length > 0) {
       const index = playlistTracks.findIndex(
@@ -223,7 +265,7 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     } catch {}
   };
 
-  // Update progress bar continuously
+  // Update progress bar
   useEffect(() => {
     if (!isPaused && isActive) {
       const interval = setInterval(() => {
@@ -237,7 +279,6 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
     }
   }, [isPaused, isActive, duration]);
 
-  // Transfer playback
   const transferPlaybackToVyl = async () => {
     if (!deviceId || !token) return;
 
@@ -362,13 +403,13 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen relative text-white flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
       <MeshGradientBackground
         albumImageUrl={currentTrack?.album?.images?.[0]?.url}
       />
 
-      {/* Header - Better mobile spacing */}
       <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 z-50 flex items-center justify-between">
         <LibraryDropdown
           token={token!}
@@ -377,7 +418,6 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
         <FullscreenButton />
       </div>
 
-      {/* Main content - Optimized for mobile */}
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center px-2 sm:px-4">
         <AlbumCarousel
           currentTrack={currentTrack}
@@ -409,9 +449,10 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
           onLike={() => setIsLiked(!isLiked)}
           onVolumeChange={handleVolumeChange}
           onShuffleToggle={handleShuffleToggle}
+          repeatMode={repeatMode}
+          onRepeatToggle={handleRepeatToggle}
         />
 
-        {/* Connection status - Better mobile positioning */}
         <div className="mt-4 sm:mt-6">
           <ConnectionStatus
             isActive={isActive}
@@ -419,13 +460,14 @@ export default function MusicPlayer({ token }: MusicPlayerProps) {
             onTransferPlayback={transferPlaybackToVyl}
           />
         </div>
-        <PlaylistSheet
-          tracks={playlistTracks}
-          currentTrack={currentTrack}
-          onTrackSelect={handleTrackSelect}
-          isPaused={isPaused}
-        />
       </div>
+
+      <PlaylistSheet
+        tracks={playlistTracks}
+        currentTrack={currentTrack}
+        onTrackSelect={handleTrackSelect}
+        isPaused={isPaused}
+      />
     </div>
   );
 }

@@ -1,6 +1,15 @@
 // src/components/PlayerControls.tsx
 import { Button } from "@/components/ui/button";
-import { Play, Pause, SkipBack, SkipForward, Shuffle } from "lucide-react";
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Repeat1,
+} from "lucide-react";
+
 import VolumeControl from "./VolumeControl";
 import CrossfadeControl from "./CrossfadeControl";
 
@@ -19,26 +28,29 @@ interface PlayerControlsProps {
   onShuffleToggle: () => void;
   crossfadeDuration?: number;
   onCrossfadeChange?: (duration: number) => void;
+  repeatMode: "off" | "context" | "track";
+  onRepeatToggle: () => void;
 }
 
 export default function PlayerControls({
   token,
   isPaused,
+  repeatMode,
   isActive,
   volume,
   isShuffle,
   onPlayPause,
   onPrevious,
   onNext,
+  onRepeatToggle,
   onVolumeChange,
   onShuffleToggle,
-  onCrossfadeChange, // Added this
+  onCrossfadeChange,
 }: PlayerControlsProps) {
   return (
-    <div className="flex   flex-col items-center gap-4 mb-8">
-      {/* Main playback controls */}
+    <div className="flex flex-col items-center gap-6 mb-8">
+      {/* Playback Controls Row */}
       <div className="flex items-center justify-center gap-6">
-        {/* Shuffle Button */}
         <Button
           variant="ghost"
           size="icon"
@@ -49,7 +61,6 @@ export default function PlayerControls({
         >
           <Shuffle className="h-5 w-5" />
         </Button>
-
         <Button
           variant="ghost"
           size="icon"
@@ -59,7 +70,6 @@ export default function PlayerControls({
         >
           <SkipBack className="h-6 w-6" fill="currentColor" />
         </Button>
-
         <Button
           variant="default"
           size="icon"
@@ -73,7 +83,6 @@ export default function PlayerControls({
             <Pause className="h-6 w-6" fill="currentColor" />
           )}
         </Button>
-
         <Button
           variant="ghost"
           size="icon"
@@ -83,11 +92,24 @@ export default function PlayerControls({
         >
           <SkipForward className="h-6 w-6" fill="currentColor" />
         </Button>
-
-        <VolumeControl volume={volume} onVolumeChange={onVolumeChange} />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-none transition-colors"
+          style={{ color: repeatMode !== "off" ? "#22c55e" : "white" }}
+          onClick={onRepeatToggle}
+          disabled={!isActive}
+        >
+          {repeatMode === "track" ? (
+            <Repeat1 className="h-5 w-5" />
+          ) : (
+            <Repeat className="h-5 w-5" />
+          )}
+        </Button>
       </div>
-
-      <div className="relative">
+      {/* Sliders/Extras in a separate row */}
+      <div className="flex gap-4 items-center justify-center">
+        <VolumeControl volume={volume} onVolumeChange={onVolumeChange} />
         <CrossfadeControl token={token} onCrossfadeChange={onCrossfadeChange} />
       </div>
     </div>
