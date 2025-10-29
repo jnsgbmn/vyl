@@ -32,6 +32,4 @@ Before you begin, make sure you have:
 - A [Spotify Premium](https://www.spotify.com/premium/) account
 - [Spotify Developer App](https://developer.spotify.com/dashboard) credentials
 
-### Installation
 
-1. **Clone the repository**
