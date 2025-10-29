@@ -1,43 +1,37 @@
-# Astro Starter Kit: Minimal
+# 🎵 Vyl - Your Personal Spotify Music Player
 
-```sh
-npm create astro@latest -- --template minimal
-```
+<div align="center">
+  <img width="800" alt="Vyl Music Player Interface" src="https://github.com/user-attachments/assets/bbda160b-29ea-4ed5-bce2-51cd8c7bddf0" />
+  
+  **A beautiful, modern Spotify web player built with Astro, React, and TypeScript**
+  
+  [![Live Demo](https://img.shields.io/badge/demo-live-green)](https://your-vyl-app.vercel.app)
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+</div>
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+---
 
-## 🚀 Project Structure
+## ✨ Features
 
-Inside of your Astro project, you'll see the following folders and files:
+🎨 **Beautiful Interface** - Glassmorphic design with dynamic gradient backgrounds that adapt to album art  
+🎵 **Full Playback Control** - Play, pause, skip, shuffle, repeat, and adjust volume  
+📱 **Mobile Responsive** - Optimized for all devices with touch-friendly controls  
+🎼 **Playlist Queue** - Swipe-up sheet showing your current playlist and up-next tracks  
+🔄 **Real-time Sync** - Seamlessly syncs with your Spotify account across devices  
+🌊 **Audio Visualizer** - Live waveform indicator shows what's currently playing  
+⚡ **Fast & Lightweight** - Built with Astro for optimal performance  
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+---
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🚀 Quick Start
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### Prerequisites
 
-Any static assets, like images, can be placed in the `public/` directory.
+Before you begin, make sure you have:
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- A [Spotify Premium](https://www.spotify.com/premium/) account
+- [Spotify Developer App](https://developer.spotify.com/dashboard) credentials
 
-## 🧞 Commands
+### Installation
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. **Clone the repository**
