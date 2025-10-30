@@ -1,7 +1,8 @@
 # 🎵 Vyl - Your Personal Spotify Music Player
 
 <div align="center">
-  <img width="800" alt="Vyl Music Player Interface" src="https://github.com/user-attachments/assets/bbda160b-29ea-4ed5-bce2-51cd8c7bddf0" />
+<img width="1742" height="960" alt="Frame 3" src="https://github.com/user-attachments/assets/143536b4-dafb-40a9-86c9-e9c53e5bf480" />
+
   
   **A beautiful, modern Spotify web player built with Astro, React, and TypeScript**
   
